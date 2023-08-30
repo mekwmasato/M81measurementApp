@@ -9,6 +9,10 @@ import csv
 import datetime
 import os
 
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
 is_connected = False
 
 Header = ["距離[mm]", "R[V]", "theta[θ]"]
@@ -37,6 +41,7 @@ def SetupM81(fq,cr):
     return 0
 
 
+
 Titlesize = (20,1)
 Textsize = (10,1)
 TitleFont = ("meiryo", 30)
@@ -57,7 +62,13 @@ layout = [
 ]
 
 
+
+#layout = [sg.Column(layout_settings), sg.Column(layout_canvas)]
+
+
 window = sg.Window("M81ロックイン計測", layout, return_keyboard_events=True)
+
+
 
 
 while True:
@@ -131,6 +142,7 @@ while True:
             distance = distance+1
             # Table ウィジェットを更新
             window['-TABLE-'].update(values=Data)
+
         except Exception:
             sg.PopupError(f'機器を接続し状態:ONにしてください')
 
