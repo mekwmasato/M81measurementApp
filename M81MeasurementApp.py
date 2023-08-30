@@ -40,6 +40,40 @@ def SetupM81(fq,cr):
     M1.setup_lock_in_measurement('S1', 0.1) #S1の周波数を参照信号にし、timeconstantを100msに設定
     return 0
 
+# matplotlibのグラフを描画する関数
+def draw_figure(canvas, figure):
+    figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
+    figure_canvas_agg.draw()
+    figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
+    return figure_canvas_agg
+
+#描画用
+x, y = [], []
+#散布図を作成
+plt.scatter(x, y, c='black', marker='o')
+#plt.title("散布図")
+plt.xlabel("距離[mm]", fontsize = 24)
+plt.ylabel("電圧実行値R[mV]", fontsize = 24)
+
+
+#最大,最小値を決定
+plt.xlim(40, 250)
+plt.ylim(0, 100)
+
+# 補助線を50ずつの間隔で追加
+plt.xticks(ticks=range(50, 250, 50))
+plt.yticks(ticks=range(0, 100, 10))
+plt.grid(True, which='both', linestyle='--', linewidth=0.5)
+
+# 縦線を描画
+x_value_for_vertical_line = float(140)
+plt.axvline(x=x_value_for_vertical_line, color='red', linestyle='--')  # 赤い破線で縦線を描画
+
+# 上と左の余白を狭くする
+plt.subplots_adjust(left=0.1, right=0.97, top=0.97, bottom=0.16)
+
+# Canvasにグラフを描画
+fig_agg = draw_figure(window['-CANVAS-'].TKCanvas, fig)
 
 
 Titlesize = (20,1)
@@ -48,7 +82,7 @@ TitleFont = ("meiryo", 30)
 Font = ("meiryo", 15)
 
 
-layout = [
+col_settings = [
     [sg.Text("M81計測App", size=Titlesize, font=TitleFont, justification='center'), ],
     [sg.Text("M81に接続", size=Textsize, font=Font), sg.Button("接続", font=Font, key="Connect")],
     [sg.Text("周波数[Hz]:", size=Textsize, font=Font), sg.InputText(font=Font, size=Textsize, default_text="1000", key="-FQ-")],
@@ -61,9 +95,14 @@ layout = [
     [sg.Table(Data, headings=Header, auto_size_columns=True, key='-TABLE-')],
 ]
 
+col_plot =[
+    [sg.Text('col1 Row 1')],
+]
 
 
-#layout = [sg.Column(layout_settings), sg.Column(layout_canvas)]
+layout = [
+    [sg.Column(col_settings), sg.Column(col_plot)]
+]
 
 
 window = sg.Window("M81ロックイン計測", layout, return_keyboard_events=True)
@@ -140,11 +179,14 @@ while True:
             Data.append(d)
             print(f"append:{d},")
             distance = distance+1
+
+            x = [item[0] for item in Data]
+            y = [item[1] for item in Data]
             # Table ウィジェットを更新
             window['-TABLE-'].update(values=Data)
 
         except Exception:
-            sg.PopupError(f'機器を接続し状態:ONにしてください')
+            sg.PopupError(f'機器を接続し[状態:ON]にしてください')
 
 
     if event == "b": #データを保存test
