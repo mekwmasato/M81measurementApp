@@ -1,6 +1,7 @@
 from math import sqrt
 from time import sleep
 
+
 import keyboard
 import PySimpleGUI as sg
 from lakeshore import SSMSystem  # M81のこと
@@ -19,6 +20,7 @@ Header = ["距離[mm]", "R[V]", "theta[θ]"]
 Data = []
 
 distance = 50
+step = 2
 
 
 def ConnectM81():
@@ -72,8 +74,6 @@ plt.axvline(x=x_value_for_vertical_line, color='red', linestyle='--')  # 赤い�
 # 上と左の余白を狭くする
 plt.subplots_adjust(left=0.1, right=0.97, top=0.97, bottom=0.16)
 
-# Canvasにグラフを描画
-fig_agg = draw_figure(window['-CANVAS-'].TKCanvas, fig)
 
 
 Titlesize = (20,1)
@@ -88,6 +88,7 @@ col_settings = [
     [sg.Text("周波数[Hz]:", size=Textsize, font=Font), sg.InputText(font=Font, size=Textsize, default_text="1000", key="-FQ-")],
     [sg.Text("電流[A]:", size=Textsize, font=Font),  sg.InputText(font=Font, size=Textsize, default_text="0.01", key="-CR-")],
     [sg.Text("初期位置[mm]:", size=Textsize, font=Font),  sg.InputText(font=Font, size=Textsize, default_text="50", key="-DT-")],
+    [sg.Text("ステップ[mm]:", size=Textsize, font=Font),  sg.InputText(font=Font, size=Textsize, default_text="2", key="-ST-")],
     [sg.Button("Set", disabled=not is_connected, font=Font, key="Setup")],
     [sg.Button("ON", disabled=not is_connected, font=Font, key="ON"), sg.Button("OFF(CSVに保存)", disabled=not is_connected, font=Font, key="OFF")],
     [sg.Text("Aで計測,Nで一つ消す", font=Font)],
@@ -107,6 +108,8 @@ layout = [
 
 window = sg.Window("M81ロックイン計測", layout, return_keyboard_events=True)
 
+# Canvasにグラフを描画
+fig_agg = draw_figure(window['-CANVAS-'].TKCanvas, fig)
 
 
 
@@ -130,6 +133,7 @@ while True:
             frequency = int(value["-FQ-"])
             current   = float(value["-CR-"])
             distance  = int(value["-DT-"])
+            step = int(value["-ST-"])
             SetupM81(frequency, current)
 
         except ValueError:
@@ -178,10 +182,12 @@ while True:
             d = [distance, lock_in_magnitude, lock_in_theta]
             Data.append(d)
             print(f"append:{d},")
-            distance = distance+1
 
             x = [item[0] for item in Data]
             y = [item[1] for item in Data]
+
+            distance = distance + step
+
             # Table ウィジェットを更新
             window['-TABLE-'].update(values=Data)
 
@@ -192,9 +198,9 @@ while True:
     if event == "b": #データを保存test
         print(f"event:{event}")    
         try:
-            d = [1,2,3]
+            d = [distance,2,3]
             Data.append(d)
-            distance = distance+1
+            distance = distance + step
             # Table ウィジェットを更新
             window['-TABLE-'].update(values=Data)
         except Exception:
@@ -204,8 +210,8 @@ while True:
     if event == "n": #データを一つ消去
         print(f"event:{event}")    
         try:
-            Data.pop(0)
-            distance = distance - 1
+            Data.pop()
+            distance = distance - step
             # Table ウィジェットを更新
             window['-TABLE-'].update(values=Data)
         except Exception:
