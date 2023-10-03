@@ -1,7 +1,6 @@
 from math import sqrt
 from time import sleep
 
-
 import keyboard
 import PySimpleGUI as sg
 from lakeshore import SSMSystem  # M81のこと
